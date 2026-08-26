@@ -32,6 +32,7 @@ import {
 import { Tender, Bid, ComplianceScore, Evidence, AuditLog, RankedBidder } from '../types';
 import { StatusBadge } from '../components/layout/StatusBadge';
 import { RiskBadge } from '../components/layout/RiskBadge';
+import { AuditReportView } from './AuditReportView';
 
 interface Props {
   tender: Tender;
@@ -594,10 +595,19 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
           </div>
 
           {/* AI Recommendation Box */}
-          <div className="gov-card p-5 border-l-3 border-[#16803C] bg-[#EBF6EE]/30 space-y-1.5">
-            <div className="flex items-center gap-2 text-[#16803C] font-bold text-sm">
-              <Sparkles className="w-4 h-4" />
-              <span>AI Recommendation: QUALIFY BIDDER (HIGH ELIGIBILITY)</span>
+          <div className="gov-card p-5 border-l-3 border-[#16803C] bg-[#EBF6EE]/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[#16803C] font-bold text-sm">
+                <Sparkles className="w-4 h-4" />
+                <span>AI Recommendation: QUALIFY BIDDER (HIGH ELIGIBILITY)</span>
+              </div>
+              <button
+                onClick={() => onOpenEvidenceViewer('EVID-GSTN', 'doc-123')}
+                className="gov-btn-secondary h-8 px-3 text-xs flex items-center gap-1.5 bg-white shadow-sm"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Inspect Source PDFs</span>
+              </button>
             </div>
             <p className="text-xs text-[#5F6B76] leading-relaxed">
               All 4 statutory registrations verified against live GSTN and CBDT registries. 3-Year Audited Annual Turnover (₹18.5 Cr) exceeds the mandatory ₹5.0 Cr threshold. Local content is 62.5% under DPIIT Class-I mandates.
@@ -950,43 +960,12 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
       {/* 7. FORENSIC AUDIT TRAIL */}
       {/* ========================================================================= */}
       {activeOfficerTab === 'audit_trail' && (
-        <div className="space-y-6">
-          <div className="gov-card p-6">
-            <h1 className="text-xl font-bold text-[#17212B]">Forensic Provenance & Audit Ledger</h1>
-            <p className="text-xs text-[#5F6B76] mt-0.5">Chronological ledger of all AI extractions, API calls, and human officer decisions</p>
-          </div>
-
-          <div className="gov-card overflow-hidden">
-            <table className="w-full gov-table text-left">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Actor / System</th>
-                  <th>Action Type</th>
-                  <th>Entity ID</th>
-                  <th>Audit Note & Provenance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {auditTrail.map((log) => (
-                  <tr key={log.log_id}>
-                    <td className="font-mono text-[#5F6B76] text-xs whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </td>
-                    <td><span className="font-semibold text-[#17212B] text-xs">{log.actor}</span></td>
-                    <td>
-                      <span className="text-xs font-semibold text-[#124B7A] bg-[#EBF3FA] px-2 py-0.5 rounded border border-[#D0E2F2]">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td><span className="font-mono text-[#5F6B76] text-xs">{log.entity_id}</span></td>
-                    <td><span className="text-[#5F6B76] text-xs">{log.notes}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AuditReportView
+          tender={tender}
+          bid={currentBid as Bid}
+          auditTrail={auditTrail}
+          onNavigate={onNavigate}
+        />
       )}
     </div>
   );

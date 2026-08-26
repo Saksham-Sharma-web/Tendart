@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Building, User, Landmark, Settings, FileCheck, ArrowLeftRight, HelpCircle } from 'lucide-react';
+import { Shield, User, Landmark, Settings, Eye, ArrowLeftRight } from 'lucide-react';
 
 interface Props {
   currentRole: string;
@@ -16,32 +16,25 @@ export const Header: React.FC<Props> = ({
 }) => {
   const getRoleMetadata = () => {
     switch (currentRole) {
-      case 'TENDERER':
-        return {
-          title: 'Tendering Authority',
-          account: 'Dr. S. K. Narayanan (CPCL Logistics)',
-          icon: Building,
-          badgeColor: 'bg-[#EBF3FA] text-[#124B7A] border-[#D0E2F2]'
-        };
       case 'BIDDER':
         return {
-          title: 'Bidder Workspace',
+          title: 'Bidders',
           account: 'Bharat Tactical & Safety Gear Pvt Ltd',
           icon: User,
           badgeColor: 'bg-[#EBF6EE] text-[#16803C] border-[#CEEBD5]'
         };
       case 'ADMIN':
         return {
-          title: 'System Administrator',
+          title: 'System & Security Admin',
           account: 'NIC / MeitY Infrastructure Admin',
-          icon: Settings,
+          icon: Shield,
           badgeColor: 'bg-[#F4EFFB] text-[#6B46C1] border-[#E2D9F3]'
         };
-      case 'AUDITOR':
+      case 'TENDERER':
         return {
-          title: 'Forensic Auditor',
-          account: 'Comptroller & Auditor General (CAG)',
-          icon: FileCheck,
+          title: 'Tender Authority',
+          account: 'Chennai Petroleum Corp Ltd (CPCL Tendering)',
+          icon: Settings,
           badgeColor: 'bg-[#FEF8EC] text-[#B7791F] border-[#FCE6BE]'
         };
       case 'OFFICER':
@@ -99,7 +92,7 @@ export const Header: React.FC<Props> = ({
         {/* Switch Portal Button */}
         <button
           onClick={onLogout}
-          className="gov-btn-secondary h-9 px-3.5 text-xs"
+          className="gov-btn-secondary h-9 px-3.5 text-xs flex items-center gap-1.5"
           title="Return to Portal Selection Gateway"
         >
           <ArrowLeftRight className="w-3.5 h-3.5" />

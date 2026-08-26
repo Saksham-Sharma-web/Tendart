@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Shield,
-  Building,
   User,
   Landmark,
   Settings,
   ArrowRight,
   Lock,
-  FileCheck
+  Eye
 } from 'lucide-react';
 
 interface Props {
@@ -18,39 +17,39 @@ interface Props {
 export const LoginGatewayView: React.FC<Props> = ({ onSelectRole }) => {
   const roles = [
     {
-      id: 'OFFICER',
-      title: 'Procurement / Verification Officer',
-      subtitle: 'Government Decision-Support Hub',
-      desc: 'Verify bidder compliance, cross-check multi-source government registries (GSTN/CBDT/Udyam), inspect OCR evidence, and record legally binding qualification decisions.',
-      icon: Landmark,
-      badge: 'Operational Authority',
-      demoUser: 'Shri R. K. Sharma (Joint Director, GeM)'
-    },
-    {
-      id: 'TENDERER',
-      title: 'Tendering Authority / CPCL',
-      subtitle: 'Tender Creation & Lifecycle Management',
-      desc: 'Create tenders, upload GeM tender documents, review AI-extracted eligibility rules, configure mandatory threshold criteria, publish tenders, and monitor participation.',
-      icon: Building,
-      badge: 'Procuring Department',
-      demoUser: 'Dr. S. K. Narayanan (CPCL Logistics)'
-    },
-    {
       id: 'BIDDER',
-      title: 'Bidder / Vendor Portal',
-      subtitle: 'Proposal Filing & AI Self-Check',
-      desc: 'Upload mandatory compliance documents, maintain reusable Document Vault, run AI pre-submission compliance check, submit bids, and respond to clarification requests.',
+      title: 'Bidders',
+      subtitle: 'Vendor Proposal Filing & AI Pre-Check',
+      desc: 'Explore published tenders feed, review mandatory specifications, test compliance with automated AI pre-flight checks, and submit encrypted proposals to GeM.',
       icon: User,
-      badge: 'Vendor Workspace',
+      badge: 'Vendor Portal',
       demoUser: 'Bharat Tactical & Safety Gear Pvt Ltd'
     },
     {
-      id: 'ADMIN',
-      title: 'System & Security Administrator',
-      subtitle: 'Platform Infrastructure & Sandbox',
-      desc: 'Configure authorized government API adapters (GSTN/PAN/Udyam), manage RBAC matrix, adjust compliance scoring formulas, and monitor processing queues.',
+      id: 'TENDERER',
+      title: 'Tender Authority',
+      subtitle: 'Tender Creation & Specification Editor',
+      desc: 'Create new tenders, specify compliance rules, upload tender PDFs for AI extraction, and monitor submitted bids across active tenders.',
       icon: Settings,
-      badge: 'Platform Governance',
+      badge: 'Tender Management',
+      demoUser: 'Chennai Petroleum Corp Ltd (CPCL Tendering)'
+    },
+    {
+      id: 'OFFICER',
+      title: 'Procurement Officer',
+      subtitle: 'Government Decision-Support Hub',
+      desc: 'Verify bidder compliance, cross-check multi-source government registries (GSTN/CBDT/Udyam), inspect OCR evidence, and record legally binding qualification decisions.',
+      icon: Landmark,
+      badge: 'Decision Authority',
+      demoUser: 'Shri R. K. Sharma (Joint Director, GeM)'
+    },
+    {
+      id: 'ADMIN',
+      title: 'System & Security Admin',
+      subtitle: 'Platform Governance & API Management',
+      desc: 'Manage users and RBAC, configure government registry APIs, monitor system health, define compliance rules, and inspect cryptographic audit logs.',
+      icon: Shield,
+      badge: 'System Control',
       demoUser: 'National Informatics Centre (NIC Admin)'
     }
   ];
@@ -116,7 +115,7 @@ export const LoginGatewayView: React.FC<Props> = ({ onSelectRole }) => {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-[#17212B]">{role.title}</h2>
+                  <h2 className="text-xl font-bold text-[#17212B]">{role.title}</h2>
                   <p className="text-xs text-[#124B7A] font-medium mt-0.5">{role.subtitle}</p>
                   <p className="text-sm text-[#5F6B76] mt-2 leading-relaxed">{role.desc}</p>
                 </div>
@@ -133,9 +132,9 @@ export const LoginGatewayView: React.FC<Props> = ({ onSelectRole }) => {
                     e.stopPropagation();
                     onSelectRole(role.id);
                   }}
-                  className="gov-btn-primary h-9 px-4 text-xs"
+                  className="gov-btn-primary h-9 px-4 text-xs flex items-center gap-1.5"
                 >
-                  <span>Login & Enter Portal</span>
+                  <span>Login as {role.title}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -144,20 +143,13 @@ export const LoginGatewayView: React.FC<Props> = ({ onSelectRole }) => {
         })}
       </div>
 
-      {/* Auditor Quick Access & Institutional Footer */}
+      {/* Institutional Footer */}
       <div className="max-w-6xl mx-auto w-full pt-6 border-t border-[#E1E6EA] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#5F6B76]">
-        <div className="flex items-center gap-2">
-          <span>Looking for Forensic Vigilance?</span>
-          <button
-            onClick={() => onSelectRole('AUDITOR')}
-            className="text-[#124B7A] hover:underline font-semibold cursor-pointer"
-          >
-            Access Auditor Read-Only Dossier →
-          </button>
-        </div>
-
         <div>
           <span>Smart India Hackathon • Problem Statement 26100 • GeM AI Compliance Platform</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>Confidentiality: Strict Enterprise Multi-Tenant Isolation</span>
         </div>
       </div>
     </div>

@@ -52,11 +52,16 @@ export const App: React.FC = () => {
 
   const handleSelectRole = (role: string) => {
     setCurrentRole(role);
-    if (role === 'TENDERER') setActiveView('tenderer_dashboard');
-    else if (role === 'BIDDER') setActiveView('bidder_dashboard');
-    else if (role === 'ADMIN') setActiveView('gov_sandbox');
-    else if (role === 'AUDITOR') setActiveView('audit_trail');
-    else setActiveView('dashboard');
+    if (role === 'TENDERER') {
+      setActiveView('tenderer_dashboard');
+    } else if (role === 'BIDDER') {
+      setSelectedTenderId(null);
+      setActiveView('bidder_dashboard');
+    } else if (role === 'ADMIN') {
+      setActiveView('admin_dashboard');
+    } else {
+      setActiveView('officer_dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -119,7 +124,8 @@ export const App: React.FC = () => {
       await loadInitialData();
       if (currentRole === 'TENDERER') setActiveView('tenderer_dashboard');
       else if (currentRole === 'BIDDER') setActiveView('bidder_dashboard');
-      else setActiveView('dashboard');
+      else if (currentRole === 'ADMIN') setActiveView('admin_dashboard');
+      else setActiveView('officer_dashboard');
     } catch (err: any) {
       console.error('Demo load error:', err);
     } finally {
@@ -161,7 +167,7 @@ export const App: React.FC = () => {
       setSelectedBidId(created.bid_id);
       const detail = await api.getBidDetail(created.bid_id);
       setCurrentBidDetail(detail);
-      if (currentRole === 'BIDDER') setActiveView('bidder_dashboard');
+      if (currentRole === 'BIDDER') setActiveView('tender_my_bid');
       else setActiveView('rankings');
     } catch (err) {
       console.error('Error submitting bid:', err);
@@ -226,22 +232,25 @@ export const App: React.FC = () => {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Dynamic Role-Aware Sidebar */}
-        <Sidebar
-          activeView={activeView}
-          onNavigate={setActiveView}
-          selectedTenderId={selectedTenderId}
-          selectedBidId={selectedBidId}
-          currentRole={currentRole}
-        />
+        {/* Dynamic Role-Aware Sidebar - Hidden for Bidder for clean full-width experience */}
+        {currentRole !== 'BIDDER' && (
+          <Sidebar
+            activeView={activeView}
+            onNavigate={setActiveView}
+            selectedTenderId={selectedTenderId}
+            selectedBidId={selectedBidId}
+            currentRole={currentRole}
+          />
+        )}
 
         {/* Main Content Area - Clean Government Canvas with 32px Padding */}
         <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-8 lg:py-8 bg-[#F6F8FA] w-full">
           {/* Role 1: Tenderer Dashboard View */}
-          {activeView === 'tenderer_dashboard' && (
+          {(activeView === 'tenderer_dashboard' || activeView === 'tenders') && (
             <TendererDashboardView
               tenders={tenders}
               bids={bids}
+              activeView={activeView}
               onNavigate={setActiveView}
               onSelectTender={(id) => {
                 setSelectedTenderId(id);
@@ -251,16 +260,31 @@ export const App: React.FC = () => {
           )}
 
           {/* Role 2: Bidder Dashboard View */}
-          {activeView === 'bidder_dashboard' && (
+          {(activeView === 'bidder_dashboard' ||
+            activeView === 'bidder_explore' ||
+            activeView === 'bidder_vault' ||
+            activeView === 'bidder_profile' ||
+            activeView === 'tender_criteria' ||
+            activeView === 'tender_vault_map' ||
+            activeView === 'tender_pre_check' ||
+            activeView === 'tender_my_bid' ||
+            activeView === 'tender_clarifications') && (
             <BidderDashboardView
               tender={activeTender}
               bids={bids}
-              onNavigate={setActiveView}
+              activeView={activeView}
+              onNavigate={(v) => {
+                if (v === 'bidder_explore') {
+                  setSelectedTenderId(null);
+                }
+                setActiveView(v);
+              }}
+              onSelectTender={(id) => setSelectedTenderId(id || null)}
             />
           )}
 
           {/* Role 3: Procurement Officer Dashboard View */}
-          {activeView === 'dashboard' && (
+          {activeView === 'officer_dashboard' && (
             <OfficerWorkspaceView
               tender={activeTender}
               bids={bids}
@@ -277,22 +301,11 @@ export const App: React.FC = () => {
           {activeView === 'create_tender' && (
             <TenderCreateView
               onCreateTender={handleCreateTender}
-              onCancel={() => setActiveView(currentRole === 'TENDERER' ? 'tenderer_dashboard' : 'dashboard')}
+              onCancel={() => setActiveView(currentRole === 'TENDERER' ? 'tenderer_dashboard' : 'officer_dashboard')}
             />
           )}
 
-          {activeView === 'tenders' && (
-            <TenderDetailView
-              tender={activeTender}
-              bids={bids}
-              onSelectBid={(id) => {
-                handleSelectBid(id);
-                setActiveView('bid_detail');
-              }}
-              onNavigate={setActiveView}
-              onRunEvaluation={handleRunLivePipeline}
-            />
-          )}
+
 
           {activeView === 'rankings' && (
             <BidderRankingView
@@ -344,17 +357,21 @@ export const App: React.FC = () => {
             />
           )}
 
-          {activeView === 'gov_sandbox' && <AdminDashboardView />}
-
-          {activeView === 'audit_trail' && (
-            <AuditReportView
-              tender={activeTender}
-              bid={currentBidDetail?.bid}
-              complianceScore={currentBidDetail?.compliance_score}
-              auditTrail={auditTrail}
+          {(activeView === 'admin_dashboard' ||
+            activeView === 'users_roles' ||
+            activeView === 'gov_integrations' ||
+            activeView === 'compliance_rules_builder' ||
+            activeView === 'system_health' ||
+            activeView === 'audit_trail') && (
+            <AdminDashboardView
+              tenders={tenders}
+              bids={bids}
+              activeView={activeView}
               onNavigate={setActiveView}
             />
           )}
+
+
 
           {activeView === 'compliance_report' && currentBidDetail && (
             <AuditReportView
