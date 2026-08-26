@@ -303,7 +303,7 @@ export const BidSubmissionView: React.FC<Props> = ({ tender, onSubmitBid, onNavi
                       <span className="text-[10px] font-bold text-[#16803C] bg-[#EBF6EE] px-2 py-0.5 rounded">✓ QUALIFIED</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-[#5F6B76]">Tender Requirement: <strong className="text-[#17212B]">{tender.techStandard || 'BIS / EN 397 / ISO 9001'}</strong></span>
+                      <span className="text-[#5F6B76]">Tender Requirement: <strong className="text-[#17212B]">{(tender as any)?.techStandard || 'BIS / EN 397 / ISO 9001'}</strong></span>
                       <span className="text-[#124B7A]">Extracted from Doc: <strong>Semantic Match Confirmed</strong></span>
                     </div>
                   </div>

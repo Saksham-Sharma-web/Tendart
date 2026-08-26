@@ -2,29 +2,62 @@ const express = require('express');
 const supabase = require('../config/supabase');
 
 const router = express.Router();
+const AI_SERVICE_URL = process.env.AI_MICROSERVICE_URL || 'http://127.0.0.1:8001';
+
+async function fetchFromAIService(path, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  try {
+    const res = await fetch(`${AI_SERVICE_URL}${path}`, { ...options, signal: controller.signal });
+    if (!res.ok) throw new Error(`AI service error: ${res.statusText}`);
+    return await res.json();
+  } catch (err) {
+    console.warn(`[TendartBackend] AI service at ${AI_SERVICE_URL}${path} unreachable:`, err.message);
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 // ---------------------- TENDERS ----------------------
 
 router.get('/tenders', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('tenders').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    res.json({ tenders: data });
+    if (supabase) {
+      const { data, error } = await supabase.from('tenders').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        return res.json({ tenders: data });
+      }
+    }
+    const aiData = await fetchFromAIService('/api/v1/tendart/tenders');
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    try {
+      const aiData = await fetchFromAIService('/api/v1/tendart/tenders');
+      return res.json(aiData);
+    } catch (fallbackErr) {
+      res.status(500).json({ error: err.message });
+    }
   }
 });
 
 router.get('/tenders/:id', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('tenders').select('*').eq('tender_id', req.params.id).single();
-    if (error && error.code !== 'PGRST116') throw error;
-    if (!data) return res.status(404).json({ error: 'Not found' });
-    res.json({ tender: data });
+    if (supabase) {
+      const { data, error } = await supabase.from('tenders').select('*').eq('tender_id', req.params.id).single();
+      if (!error && data) {
+        return res.json({ tender: data });
+      }
+    }
+    const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}`);
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    try {
+      const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}`);
+      return res.json(aiData);
+    } catch (fallbackErr) {
+      res.status(500).json({ error: err.message });
+    }
   }
 });
 
@@ -32,15 +65,32 @@ router.post('/tenders', async (req, res) => {
   try {
     const tender = {
       ...req.body,
-      tender_id: `TND-${Date.now()}`,
+      tender_id: req.body.tender_id || `TND-${Date.now()}`,
       created_at: new Date().toISOString()
     };
-    const { data, error } = await supabase.from('tenders').insert([tender]).select().single();
-    if (error) throw error;
-    res.json({ tender: data });
+    if (supabase) {
+      const { data, error } = await supabase.from('tenders').insert([tender]).select().single();
+      if (!error && data) {
+        return res.status(201).json({ tender: data });
+      }
+    }
+    const aiRes = await fetchFromAIService('/api/v1/tendart/tenders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tender)
+    });
+    return res.status(201).json(aiRes);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    try {
+      const aiRes = await fetchFromAIService('/api/v1/tendart/tenders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body)
+      });
+      return res.status(201).json(aiRes);
+    } catch (fallbackErr) {
+      res.status(500).json({ error: err.message });
+    }
   }
 });
 
@@ -48,38 +98,29 @@ router.post('/tenders', async (req, res) => {
 
 router.get('/tenders/:id/bids', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('bids').select('*').eq('tender_id', req.params.id).order('submitted_at', { ascending: false });
-    if (error) throw error;
-    res.json({ bids: data });
+    if (supabase) {
+      const { data, error } = await supabase.from('bids').select('*').eq('tender_id', req.params.id).order('submitted_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        return res.json({ bids: data });
+      }
+    }
+    const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}/bids`);
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    try {
+      const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}/bids`);
+      return res.json(aiData);
+    } catch (fallbackErr) {
+      res.status(500).json({ error: err.message });
+    }
   }
 });
 
 router.get('/bids/:id', async (req, res) => {
   try {
-    const { data: bid, error: bidError } = await supabase.from('bids').select('*').eq('bid_id', req.params.id).single();
-    if (bidError && bidError.code !== 'PGRST116') throw bidError;
-    if (!bid) return res.status(404).json({ error: 'Not found' });
-
-    const { data: tender, error: tError } = await supabase.from('tenders').select('*').eq('tender_id', bid.tender_id).single();
-    
-    // Fetch evidence for this bid
-    const { data: evidence, error: eError } = await supabase.from('evidence').select('*').eq('bid_id', bid.bid_id);
-    
-    res.json({ 
-      bid, 
-      tender: tender || null, 
-      compliance_score: { 
-        total_score: bid.compliance_score || 0,
-        risk_level: bid.risk_level || 'UNKNOWN',
-        status: bid.compliance_status || 'UNKNOWN'
-      }, 
-      evidence: evidence || [] 
-    });
+    const aiData = await fetchFromAIService(`/api/v1/tendart/bids/${req.params.id}`);
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -91,11 +132,75 @@ router.post('/bids', async (req, res) => {
       bid_id: req.body.bid_id || `BID-${Date.now()}`,
       submitted_at: new Date().toISOString()
     };
-    const { data, error } = await supabase.from('bids').insert([bid]).select().single();
-    if (error) throw error;
-    res.json({ bid: data });
+    if (supabase) {
+      const { data, error } = await supabase.from('bids').insert([bid]).select().single();
+      if (!error && data) {
+        return res.status(201).json({ bid: data });
+      }
+    }
+    return res.status(201).json({ bid });
   } catch (err) {
-    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/bids/:id/evaluate', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService(`/api/v1/tendart/bids/${req.params.id}/evaluate`, { method: 'POST' });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/tenders/:id/evaluate-all', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}/evaluate-all`, { method: 'POST' });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/bids/:id/decision', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService(`/api/v1/tendart/bids/${req.params.id}/decision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    if (supabase) {
+      await supabase.from('bids').update({
+        officer_decision: req.body.decision,
+        decision_remarks: req.body.remarks,
+        decision_by: req.body.officer_name,
+        decision_at: new Date().toISOString()
+      }).eq('bid_id', req.params.id).catch(() => {});
+    }
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/evidence/:id', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService(`/api/v1/tendart/evidence/${req.params.id}`);
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/evidence/:id/review', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService(`/api/v1/tendart/evidence/${req.params.id}/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    return res.json(aiData);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -104,16 +209,10 @@ router.post('/bids', async (req, res) => {
 
 router.get('/tenders/:id/rankings', async (req, res) => {
   try {
-    let query = supabase.from('rankings').select('*').eq('tender_id', req.params.id).order('rank', { ascending: true });
-    
-    if (req.query.status_filter) query = query.eq('status', req.query.status_filter);
-    if (req.query.risk_filter) query = query.eq('risk_level', req.query.risk_filter);
-
-    const { data, error } = await query;
-    if (error) throw error;
-    res.json({ rankings: data });
+    const params = new URLSearchParams(req.query).toString();
+    const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}/rankings?${params}`);
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -122,19 +221,82 @@ router.get('/tenders/:id/rankings', async (req, res) => {
 
 router.get('/tenders/:id/audit-trail', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('audit_trail').select('*').eq('tender_id', req.params.id).order('timestamp', { ascending: false });
-    if (error) throw error;
-    res.json({ audit_trail: data });
+    const aiData = await fetchFromAIService(`/api/v1/tendart/tenders/${req.params.id}/audit-trail`);
+    return res.json(aiData);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Demo Loader Endpoint
+// ---------------------- OCR & AI FACT EXTRACTION ----------------------
+
+router.post('/ai/extract-facts', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService('/api/v1/tendart/ai/extract-facts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/ai/analyze-tender', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService('/api/v1/tendart/ai/analyze-tender', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/ai/detect-discrepancies', async (req, res) => {
+  try {
+    const aiData = await fetchFromAIService('/api/v1/tendart/ai/detect-discrepancies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------- EVIDENCE DOCUMENTS & PDF PAGES ----------------------
+
+router.get('/documents/:id/pages/:page/image', async (req, res) => {
+  try {
+    const response = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/documents/${req.params.id}/pages/${req.params.page}/image`);
+    if (!response.ok) return res.status(404).json({ error: 'Page image not found' });
+    
+    res.setHeader('Content-Type', 'image/png');
+    const arrayBuffer = await response.arrayBuffer();
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------- DEMO LOADER ----------------------
+
 router.post('/demo/load', async (req, res) => {
-  // In a real scenario, this would seed the DB with initial data
-  res.json({ success: true, message: 'Demo endpoint hit. Please use SQL script to load demo data.' });
+  try {
+    const aiData = await fetchFromAIService('/api/v1/tendart/demo/load', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    return res.json(aiData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

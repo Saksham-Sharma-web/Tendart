@@ -1562,7 +1562,7 @@ export const BidderDashboardView: React.FC<Props> = ({ tender, bids, activeView,
                     <span className="font-mono text-xs text-[#5F6B76]">BID ID: {myBid?.bid_id || 'BID-2026-991'}</span>
                   </div>
                   <h1 className="text-2xl font-bold text-[#17212B] tracking-tight mb-1">{selectedTender.title}</h1>
-                  <p className="text-xs text-[#5F6B76]">Submission Timestamp: <strong className="text-[#17212B]">{new Date(myBid?.submission_date || new Date()).toLocaleString()} IST</strong></p>
+                  <p className="text-xs text-[#5F6B76]">Submission Timestamp: <strong className="text-[#17212B]">{new Date((myBid as any)?.submission_date || (myBid as any)?.submitted_at || new Date()).toLocaleString()} IST</strong></p>
                 </div>
                 
                 <div className="text-right">

@@ -1,7 +1,7 @@
 import { Tender, Bid, ComplianceScore, Evidence, AuditLog, RankedBidder } from '../types';
 import { mockTenders, mockBids, mockRankedBidders, mockBidDetails, mockAuditTrail } from './mockData';
 
-const API_BASE = 'http://localhost:8001/api/v1/tendart';
+const API_BASE = 'http://localhost:5000/api/v1/tendart';
 
 // In-Memory dynamic fallback store for seamless interactive demo
 let localTenders = [...mockTenders];
