@@ -12,13 +12,13 @@ export const PipelineProgressModal: React.FC<Props> = ({ isOpen, onClose, onComp
 
   const steps = [
     { title: 'Document Ingestion & SHA-256 Hashing', desc: 'Calculating cryptographic SHA-256 hashes and saving PDFs to object storage', icon: FileCheck },
-    { title: 'PyMuPDF Parsing & Neural OCR', desc: 'Vector layout parsing and PaddleOCR ONNX Runtime execution for token bounding boxes', icon: Cpu },
-    { title: 'QR Code & Government Seal Decoding', desc: 'Scanning digital signatures, QR payload URLs, and official empanelment seals', icon: Eye },
-    { title: 'Source-Grounded AI Fact Extraction', desc: 'Extracting turnover, experience years, local content %, and OEM facts with verbatim page quotes', icon: Layers },
-    { title: 'Government Portal Verification Adapters', desc: 'Querying GSTN, Income Tax PAN, MSME Udyam, MCA, and CPPP Debarment registries', icon: Database },
+    { title: 'PyMuPDF Vector & OCR Parsing', desc: 'Vector layout extraction and token bounding box normalization', icon: Cpu },
+    { title: 'QR Code & Government Seal Decoding', desc: 'Scanning digital signatures and official empanelment seals', icon: Eye },
+    { title: 'Source-Grounded AI Fact Extraction', desc: 'Extracting turnover, experience years, local content %, and OEM facts', icon: Layers },
+    { title: 'Government Portal Verification Adapters', desc: 'Querying GSTN, Income Tax PAN, MSME Udyam, and CPPP Debarment registries', icon: Database },
     { title: 'Cross-Document Discrepancy Detection', desc: 'Cross-matching legal entity names and financial figures across disparate documents', icon: ShieldCheck },
-    { title: 'Deterministic Compliance Rule Evaluation', desc: 'Applying hard constraints first, then computing transparent weighted soft scores (0-100)', icon: CheckCircle2 },
-    { title: 'Bidder Shortlist Ranking & Audit Trail', desc: 'Ranking qualified bidders deterministically and writing immutable audit logs', icon: CheckCircle2 }
+    { title: 'Deterministic Compliance Rule Evaluation', desc: 'Applying mandatory hard constraints first, then computing soft scores (0-100)', icon: CheckCircle2 },
+    { title: 'Bidder Shortlist Ranking & Audit Trail', desc: 'Ranking qualified bidders and writing immutable audit logs', icon: CheckCircle2 }
   ];
 
   useEffect(() => {
@@ -35,11 +35,11 @@ export const PipelineProgressModal: React.FC<Props> = ({ isOpen, onClose, onComp
           clearInterval(interval);
           setTimeout(() => {
             onComplete();
-          }, 800);
+          }, 600);
           return prev;
         }
       });
-    }, 600);
+    }, 450);
 
     return () => clearInterval(interval);
   }, [isOpen]);
@@ -49,31 +49,31 @@ export const PipelineProgressModal: React.FC<Props> = ({ isOpen, onClose, onComp
   const progressPct = Math.round(((currentStep + 1) / steps.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-      <div className="glass-panel w-full max-w-xl rounded-2xl border border-amber-500/30 p-6 shadow-2xl shadow-amber-950/50 bg-[#0B192C]">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+      <div className="gov-card w-full max-w-lg p-6 shadow-2xl bg-[#0D1B2A] border border-[#1E2E42] space-y-4">
+        <div className="flex items-center justify-between border-b border-[#1E2E42] pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-              <RefreshCw className="w-5 h-5 text-amber-400 animate-spin" />
+            <div className="p-2 rounded bg-blue-950/60 text-blue-400 border border-blue-800/60">
+              <RefreshCw className="w-5 h-5 animate-spin" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Live Verification Pipeline Execution</h3>
-              <p className="text-xs text-slate-400">Processing Tender GEM/2026/SAFETY/001 (12 Bidders)</p>
+              <h3 className="text-base font-bold text-white">Live Compliance Pipeline</h3>
+              <p className="text-xs text-slate-400">Processing Tender GEM/2026/B/891240</p>
             </div>
           </div>
-          <span className="text-sm font-extrabold text-amber-400">{progressPct}%</span>
+          <span className="text-sm font-bold text-blue-400">{progressPct}%</span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-slate-800 h-2 rounded-full mt-5 overflow-hidden">
+        <div className="w-full bg-slate-800 h-2 rounded overflow-hidden">
           <div
-            className="bg-gradient-to-r from-amber-500 to-emerald-500 h-full rounded-full transition-all duration-300"
+            className="bg-blue-500 h-full transition-all duration-200"
             style={{ width: `${progressPct}%` }}
-          ></div>
+          />
         </div>
 
         {/* Step-by-Step List */}
-        <div className="mt-6 space-y-3 max-h-[380px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
           {steps.map((step, idx) => {
             const Icon = step.icon;
             const isCompleted = idx < currentStep;
@@ -82,47 +82,32 @@ export const PipelineProgressModal: React.FC<Props> = ({ isOpen, onClose, onComp
             return (
               <div
                 key={idx}
-                className={`p-3 rounded-xl border transition-all flex items-start gap-3.5 ${
+                className={`p-3 rounded border text-xs flex items-start gap-3 transition-colors ${
                   isCurrent
-                    ? 'bg-amber-500/10 border-amber-500/40 shadow-sm shadow-amber-500/10'
+                    ? 'bg-blue-950/40 border-blue-500 shadow-sm'
                     : isCompleted
-                    ? 'bg-slate-900/60 border-slate-800/80 opacity-85'
-                    : 'bg-slate-950/30 border-slate-900 opacity-40'
+                    ? 'bg-[#0A1624] border-[#1E2E42]'
+                    : 'bg-[#07111D] border-[#152234] opacity-40'
                 }`}
               >
                 <div
-                  className={`p-2 rounded-lg shrink-0 mt-0.5 ${
+                  className={`p-1.5 rounded shrink-0 ${
                     isCompleted
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                      ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60'
                       : isCurrent
-                      ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
+                      ? 'bg-blue-600 text-white font-bold'
                       : 'bg-slate-800 text-slate-500'
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h4 className={`text-xs font-bold ${isCurrent ? 'text-amber-300' : isCompleted ? 'text-slate-200' : 'text-slate-500'}`}>
-                    Step {idx + 1}: {step.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{step.desc}</p>
+                  <p className="font-semibold text-white">{step.title}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{step.desc}</p>
                 </div>
               </div>
             );
           })}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-          {currentStep === steps.length - 1 ? (
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer"
-            >
-              View Verification Results
-            </button>
-          ) : (
-            <span className="text-xs text-slate-400 italic">Evaluating deterministic rules across 12 bid packages...</span>
-          )}
         </div>
       </div>
     </div>

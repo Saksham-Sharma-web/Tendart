@@ -2,55 +2,145 @@
 
 @layer base {
   body {
-    background-color: #0B192C;
-    color: #F8FAFC;
-    min-height: 100vh;
-    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #F6F8FA;
+    color: #17212B;
+    font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom Sleek Scrollbar */
+/* Institutional Clean Card */
+.gov-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E1E6EA;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* Light, Spacious Government Table */
+.gov-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.gov-table th {
+  background-color: #F1F4F7;
+  color: #5F6B76;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 18px;
+  border-bottom: 1px solid #E1E6EA;
+}
+
+.gov-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #EAEFF3;
+  color: #17212B;
+  font-size: 14px;
+  background-color: #FFFFFF;
+  vertical-align: middle;
+}
+
+.gov-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gov-table tr:hover td {
+  background-color: #F8FAFC;
+}
+
+/* Form Inputs */
+.gov-input {
+  height: 44px;
+  border: 1px solid #CBD3DA;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #17212B;
+  background-color: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gov-input:focus {
+  border-color: #124B7A;
+  box-shadow: 0 0 0 2px rgba(18, 75, 122, 0.15);
+}
+
+/* Primary Button */
+.gov-btn-primary {
+  height: 42px;
+  background-color: #124B7A;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 0 20px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.gov-btn-primary:hover {
+  background-color: #0B3557;
+}
+
+/* Secondary Button */
+.gov-btn-secondary {
+  height: 42px;
+  background-color: #FFFFFF;
+  color: #124B7A;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 0 18px;
+  border: 1px solid #CBD3DA;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.gov-btn-secondary:hover {
+  background-color: #F6F8FA;
+  border-color: #124B7A;
+}
+
+/* Document OCR Bounding Box Indicator */
+.evidence-highlight-box {
+  border: 2px solid #124B7A;
+  background-color: rgba(18, 75, 122, 0.12);
+  box-shadow: 0 0 8px rgba(18, 75, 122, 0.25);
+}
+
+/* Clean Government Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B192C;
+  background: #F6F8FA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #CBD3DA;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* Glassmorphism Cards */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-card-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card-hover:hover {
-  transform: translateY(-2px);
-  border-color: rgba(217, 119, 6, 0.4);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-}
-
-/* Bounding Box Canvas Overlay Animation */
-@keyframes pulse-box {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 0.6; }
-}
-
-.evidence-highlight-box {
-  animation: pulse-box 2.5s infinite ease-in-out;
+  background: #8A949E;
 }
