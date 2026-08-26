@@ -136,11 +136,15 @@ export const BidderRankingView: React.FC<Props> = ({
           </thead>
           <tbody>
             {filteredRankings.map((bid, idx) => (
-              <tr key={bid.bid_id}>
+              <tr
+                key={bid.bid_id}
+                onClick={() => onSelectBid(bid.bid_id)}
+                className="cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+              >
                 <td className="text-center font-bold text-[#5F6B76]">{idx + 1}</td>
                 <td>
                   <div>
-                    <p className="font-semibold text-[#17212B]">{bid.bidder_name}</p>
+                    <p className="font-semibold text-[#17212B] hover:text-[#124B7A]">{bid.bidder_name}</p>
                     <p className="text-xs text-[#5F6B76] mt-0.5">{bid.gstin || bid.pan}</p>
                   </div>
                 </td>
@@ -157,7 +161,10 @@ export const BidderRankingView: React.FC<Props> = ({
                 <td><StatusBadge status={bid.status} size="sm" /></td>
                 <td className="text-right">
                   <button
-                    onClick={() => onSelectBid(bid.bid_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectBid(bid.bid_id);
+                    }}
                     className="gov-btn-primary h-8 px-3 text-xs"
                   >
                     Inspect Dossier

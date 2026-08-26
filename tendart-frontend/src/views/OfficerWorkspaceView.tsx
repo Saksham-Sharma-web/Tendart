@@ -352,10 +352,18 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
               </thead>
               <tbody>
                 {rankings.slice(0, 4).map((bid) => (
-                  <tr key={bid.bid_id}>
+                  <tr
+                    key={bid.bid_id}
+                    onClick={() => {
+                      setSelectedBidId(bid.bid_id);
+                      onSelectBid(bid.bid_id);
+                      setActiveOfficerTab('dossier');
+                    }}
+                    className="cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+                  >
                     <td>
                       <div>
-                        <p className="font-semibold text-[#17212B]">{bid.bidder_name}</p>
+                        <p className="font-semibold text-[#17212B] hover:text-[#124B7A]">{bid.bidder_name}</p>
                         <p className="text-xs text-[#5F6B76] mt-0.5">{bid.gstin || bid.pan}</p>
                       </div>
                     </td>
@@ -380,7 +388,8 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
                     </td>
                     <td className="text-right">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedBidId(bid.bid_id);
                           onSelectBid(bid.bid_id);
                           setActiveOfficerTab('dossier');
@@ -477,11 +486,19 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
               </thead>
               <tbody>
                 {filteredRankings.map((bid, idx) => (
-                  <tr key={bid.bid_id}>
+                  <tr
+                    key={bid.bid_id}
+                    onClick={() => {
+                      setSelectedBidId(bid.bid_id);
+                      onSelectBid(bid.bid_id);
+                      setActiveOfficerTab('dossier');
+                    }}
+                    className="cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+                  >
                     <td className="text-center font-bold text-[#5F6B76]">{idx + 1}</td>
                     <td>
                       <div>
-                        <p className="font-semibold text-[#17212B]">{bid.bidder_name}</p>
+                        <p className="font-semibold text-[#17212B] hover:text-[#124B7A]">{bid.bidder_name}</p>
                         <p className="text-xs text-[#5F6B76] mt-0.5">GST: {bid.gstin || 'N/A'}</p>
                       </div>
                     </td>
@@ -498,7 +515,8 @@ export const OfficerWorkspaceView: React.FC<Props> = ({
                     <td><StatusBadge status={bid.status} size="sm" /></td>
                     <td className="text-right">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedBidId(bid.bid_id);
                           onSelectBid(bid.bid_id);
                           setActiveOfficerTab('dossier');

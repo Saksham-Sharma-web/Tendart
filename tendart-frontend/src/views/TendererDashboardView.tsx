@@ -3,12 +3,14 @@ import {
   Building,
   FilePlus2,
   FileText,
+  FileCheck2,
   CheckCircle2,
   AlertTriangle,
   Users,
   BarChart3,
   Sparkles,
   ShieldAlert,
+  ShieldCheck,
   UploadCloud,
   Clock,
   Printer,
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Tender, Bid, TenderRequirement } from '../types';
 import { StatusBadge } from '../components/layout/StatusBadge';
+import { FullBidderDossierView } from './FullBidderDossierView';
 
 interface Props {
   tenders: Tender[];
@@ -57,6 +60,9 @@ export const TendererDashboardView: React.FC<Props> = ({
     created_at: '2026-08-01T10:00:00Z',
     requirements: []
   });
+
+  // Selected Bidder for Detailed Inspection Modal
+  const [selectedDetailBid, setSelectedDetailBid] = useState<Bid | null>(null);
 
   // Create Tender Form State
   const [newTitle, setNewTitle] = useState('Supply & Commissioning of High-Pressure Industrial Valve Assemblies');
@@ -378,93 +384,125 @@ export const TendererDashboardView: React.FC<Props> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. CREATE TENDER & UPLOAD PDF WORKFLOW */}
+      {/* 2. CREATE TENDER & AUTOMATED PDF EXTRACTION */}
       {/* ========================================================================= */}
       {activeTab === 'create_tender' && (
         <div className="space-y-6">
           <div className="gov-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-semibold text-[#124B7A] uppercase tracking-wider bg-[#EBF3FA] border border-[#D0E2F2] px-2.5 py-0.5 rounded">
-                Tender Ingestion Engine
+                Automated Tender Ingestion Engine
               </span>
-              <h1 className="text-xl font-bold text-[#17212B] mt-1">Upload GeM Tender PDF for Automated Parsing</h1>
+              <h1 className="text-xl font-bold text-[#17212B] mt-1">1-Click Automated GeM Tender Extraction</h1>
               <p className="text-xs text-[#5F6B76] mt-0.5">
-                AI extracts all eligibility conditions, financial turnover thresholds, and statutory mandates.
+                Upload tender PDF to automatically extract metadata, mandatory documents, eligibility rules, and clause conflicts.
               </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#16803C] bg-[#EBF6EE] px-3 py-1 rounded border border-[#CEEBD5]">
+                ● Automated Extraction Ready
+              </span>
             </div>
           </div>
 
+          {/* 1-Click Upload & Automated PDF Parser */}
           <div className="gov-card p-6 space-y-5">
-            <h2 className="text-sm font-bold text-[#17212B] border-b border-[#E1E6EA] pb-3">
-              1. Basic Tender Parameters
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
-              <div>
-                <label className="block text-[#5F6B76] uppercase font-semibold mb-1.5">Tender Reference Number *</label>
-                <input
-                  type="text"
-                  value={newRefNumber}
-                  onChange={(e) => setNewRefNumber(e.target.value)}
-                  className="gov-input w-full font-mono uppercase text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[#5F6B76] uppercase font-semibold mb-1.5">Estimated Value (₹ Crores) *</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={newValueCr}
-                  onChange={(e) => setNewValueCr(parseFloat(e.target.value))}
-                  className="gov-input w-full font-bold text-[#124B7A] text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[#5F6B76] uppercase font-semibold mb-1.5">Submission Deadline *</label>
-                <input
-                  type="date"
-                  value={newDeadline}
-                  onChange={(e) => setNewDeadline(e.target.value)}
-                  className="gov-input w-full text-xs"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="block text-[#5F6B76] uppercase font-semibold mb-1.5">Tender Scope Title *</label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="gov-input w-full text-xs"
-                />
-              </div>
+            <div className="flex items-center justify-between border-b border-[#E1E6EA] pb-3">
+              <h2 className="text-sm font-bold text-[#17212B]">
+                Upload Tender PDF (`CPCL/2026/VALVE-881.pdf`)
+              </h2>
+              <span className="text-xs text-[#5F6B76]">Vector OCR & Clause NLP Analysis</span>
             </div>
 
-            {/* Document Upload Dropzone */}
-            <div className="pt-3 border-t border-[#E1E6EA] space-y-3">
-              <h3 className="text-sm font-bold text-[#17212B]">2. Tender Specification & Eligibility Documents</h3>
+            <div className="border-2 border-dashed border-[#CBD3DA] rounded-lg p-6 bg-[#F6F8FA] text-center space-y-3">
+              <UploadCloud className="w-10 h-10 text-[#124B7A] mx-auto" />
+              <div>
+                <p className="text-sm font-bold text-[#17212B]">Drag and drop tender document or click to browse</p>
+                <p className="text-xs text-[#5F6B76] mt-0.5">Supported: PDF, DOCX, GeM Tender Package (Max 50MB)</p>
+              </div>
 
-              <div className="border border-dashed border-[#CBD3DA] hover:border-[#124B7A] rounded-lg p-6 text-center bg-[#F6F8FA] space-y-2 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-[#EBF3FA] text-[#124B7A] flex items-center justify-center mx-auto">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#17212B]">Upload Tender Document (PDF, BOQ, Specification Sheet)</p>
-                  <p className="text-[11px] text-[#5F6B76] mt-0.5">PyMuPDF OCR will automatically extract all mandatory eligibility rules</p>
-                </div>
-
+              <div className="flex justify-center gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleSimulateAiPdfParse}
-                  disabled={isAiAnalyzing}
-                  className="gov-btn-primary h-9 px-5 text-xs"
+                  className="gov-btn-primary h-10 px-5 text-xs"
                 >
-                  {isAiAnalyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
-                  <span>{isAiAnalyzing ? 'Extracting Requirements via AI...' : 'Parse Tender PDF & Extract Rules'}</span>
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Execute 1-Click Automated Extraction</span>
                 </button>
               </div>
+            </div>
+
+            {/* Automated Extraction Summary Card */}
+            <div className="p-5 bg-[#FFFFFF] rounded-lg border border-[#E1E6EA] space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E1E6EA] pb-3">
+                <div className="flex items-center gap-2">
+                  <FileCheck2 className="w-4 h-4 text-[#16803C]" />
+                  <h3 className="text-sm font-bold text-[#17212B]">AI Extracted Structured Tender Summary</h3>
+                </div>
+                <span className="text-xs font-mono text-[#5F6B76]">Auto-Populated from PDF</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div className="p-3 bg-[#F6F8FA] rounded border border-[#E1E6EA]">
+                  <span className="text-[#5F6B76] font-semibold">Tender Value:</span>
+                  <p className="font-bold text-[#124B7A] text-sm mt-0.5">₹ 24.50 Crores</p>
+                </div>
+                <div className="p-3 bg-[#F6F8FA] rounded border border-[#E1E6EA]">
+                  <span className="text-[#5F6B76] font-semibold">Earnest Money (EMD):</span>
+                  <p className="font-bold text-[#17212B] text-sm mt-0.5">₹ 24.50 Lakhs (1%)</p>
+                </div>
+                <div className="p-3 bg-[#F6F8FA] rounded border border-[#E1E6EA]">
+                  <span className="text-[#5F6B76] font-semibold">Bid Closing Deadline:</span>
+                  <p className="font-bold text-[#17212B] text-sm mt-0.5">28 Aug 2026 (17:00 IST)</p>
+                </div>
+                <div className="p-3 bg-[#F6F8FA] rounded border border-[#E1E6EA]">
+                  <span className="text-[#5F6B76] font-semibold">Mandatory Documents:</span>
+                  <p className="font-bold text-[#16803C] text-sm mt-0.5">11 Docs Identified</p>
+                </div>
+              </div>
+
+              {/* AI Quality & Clause Conflict Check */}
+              <div className="p-4 bg-[#EBF6EE] rounded-md border border-[#CEEBD5] space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#16803C] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Automated AI Clause Quality & Conflict Inspection
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#16803C] bg-white px-2 py-0.5 rounded border border-[#CEEBD5]">
+                    Passed 28 Rule Checks
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-[#17212B]">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-[#16803C]" />
+                    <span>✓ No duplicate clauses detected</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[#B7791F]">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>⚠ 1 ambiguous clause (Clarified with GeM GTC)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-[#16803C]" />
+                    <span>✓ 11 mandatory documents matched</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              <span className="text-xs text-[#5F6B76]">
+                Officer only reviews exceptions before deterministic publishing.
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('ai_extracted_rules')}
+                className="gov-btn-primary h-10 px-5 text-xs"
+              >
+                <span>Review Extracted Rules ({extractedRules.length}) →</span>
+              </button>
             </div>
           </div>
         </div>
@@ -548,58 +586,82 @@ export const TendererDashboardView: React.FC<Props> = ({
       {/* 4. PARTICIPATING BIDDERS OVERVIEW */}
       {/* ========================================================================= */}
       {activeTab === 'bidders' && (
-        <div className="space-y-6">
-          <div className="gov-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-[#17212B]">Participating Bidders Overview</h1>
-              <p className="text-xs text-[#5F6B76] mt-0.5">Live status of bids ingested and verified for Tender {selectedTender.tender_number}</p>
+        selectedDetailBid ? (
+          <FullBidderDossierView
+            bid={selectedDetailBid}
+            tender={selectedTender}
+            onBack={() => setSelectedDetailBid(null)}
+          />
+        ) : (
+          <div className="space-y-6">
+            <div className="gov-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-xl font-bold text-[#17212B]">Participating Bidders Overview</h1>
+                <p className="text-xs text-[#5F6B76] mt-0.5">Click any bidder to open the full-screen requirement fulfillment & document verification dossier</p>
+              </div>
+
+              <span className="text-xs font-semibold text-[#124B7A] bg-[#EBF3FA] px-3 py-1 rounded border border-[#D0E2F2]">
+                Assigned to Procurement Officer
+              </span>
             </div>
 
-            <span className="text-xs font-semibold text-[#124B7A] bg-[#EBF3FA] px-3 py-1 rounded border border-[#D0E2F2]">
-              Assigned to Procurement Officer
-            </span>
-          </div>
-
-          <div className="gov-card overflow-hidden">
-            <table className="w-full gov-table text-left">
-              <thead>
-                <tr>
-                  <th>Bidder Enterprise</th>
-                  <th>Commercial Bid</th>
-                  <th>Compliance Score</th>
-                  <th>AI Preliminary Status</th>
-                  <th>Officer Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bids.map((b) => (
-                  <tr key={b.bid_id}>
-                    <td>
-                      <div>
-                        <p className="font-semibold text-[#17212B]">{b.bidder_name}</p>
-                        <p className="text-xs text-[#5F6B76] mt-0.5">{b.gstin || b.pan}</p>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="font-semibold text-[#17212B]">₹ {b.bid_amount_cr} Cr</span>
-                    </td>
-                    <td>
-                      <span className="font-bold text-[#16803C]">{b.compliance_score || 85}/100</span>
-                    </td>
-                    <td>
-                      <StatusBadge status={b.compliance_status || (b as any).status || 'QUALIFIED'} size="sm" />
-                    </td>
-                    <td>
-                      <span className="text-xs text-[#5F6B76] bg-[#F1F4F7] px-2.5 py-0.5 rounded border border-[#E1E6EA]">
-                        Assigned to Officer
-                      </span>
-                    </td>
+            <div className="gov-card overflow-hidden">
+              <table className="w-full gov-table text-left">
+                <thead>
+                  <tr>
+                    <th>Bidder Enterprise</th>
+                    <th>Commercial Bid</th>
+                    <th>Compliance Score</th>
+                    <th>AI Preliminary Status</th>
+                    <th>Officer Status</th>
+                    <th className="text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {bids.map((b) => (
+                    <tr
+                      key={b.bid_id}
+                      onClick={() => setSelectedDetailBid(b)}
+                      className="cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      <td>
+                        <div>
+                          <p className="font-semibold text-[#17212B] hover:text-[#124B7A]">{b.bidder_name}</p>
+                          <p className="text-xs text-[#5F6B76] mt-0.5">{b.gstin || b.pan}</p>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="font-semibold text-[#17212B]">₹ {b.bid_amount_cr} Cr</span>
+                      </td>
+                      <td>
+                        <span className="font-bold text-[#16803C]">{b.compliance_score || 85}/100</span>
+                      </td>
+                      <td>
+                        <StatusBadge status={b.compliance_status || (b as any).status || 'QUALIFIED'} size="sm" />
+                      </td>
+                      <td>
+                        <span className="text-xs text-[#5F6B76] bg-[#F1F4F7] px-2.5 py-0.5 rounded border border-[#E1E6EA]">
+                          Assigned to Officer
+                        </span>
+                      </td>
+                      <td className="text-right">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDetailBid(b);
+                          }}
+                          className="gov-btn-primary h-8 px-3 text-xs"
+                        >
+                          View Full Dossier →
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* ========================================================================= */}

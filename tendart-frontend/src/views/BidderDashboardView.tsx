@@ -239,20 +239,49 @@ export const BidderDashboardView: React.FC<Props> = ({ tender, bids, onNavigate 
       )}
 
       {/* ========================================================================= */}
-      {/* 2. DOCUMENT VAULT */}
+      {/* 2. DOCUMENT VAULT WITH AUTOMATED EXPIRY TRACKING */}
       {/* ========================================================================= */}
       {activeBidderTab === 'vault' && (
         <div className="space-y-6">
           <div className="gov-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-[#17212B]">Enterprise Document Vault</h1>
-              <p className="text-xs text-[#5F6B76] mt-0.5">Maintain reusable certificates verified once, usable across all GeM bids</p>
+              <p className="text-xs text-[#5F6B76] mt-0.5">Maintain reusable certificates verified once, usable across all GeM bids with automatic expiry tracking</p>
             </div>
 
             <button className="gov-btn-primary h-9 px-4 text-xs">
               <UploadCloud className="w-3.5 h-3.5" />
               <span>Upload New Document</span>
             </button>
+          </div>
+
+          {/* Automated Expiry Monitoring Alert Box */}
+          <div className="p-4 bg-[#FEF8EC] rounded-lg border border-[#FCE6BE] space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#B7791F] flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Automated Certificate Expiry Tracker
+              </span>
+              <span className="text-[11px] font-semibold text-[#B7791F] bg-white px-2 py-0.5 rounded border border-[#FCE6BE]">
+                2 Actions Recommended
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-[#17212B]">
+              <div className="p-2.5 bg-white rounded border border-[#FCE6BE] flex items-center justify-between">
+                <div>
+                  <p className="font-bold">Form GST REG-06 Tax Certificate</p>
+                  <p className="text-[#B7791F] text-[10px]">Annual Review due in 15 days</p>
+                </div>
+                <button className="text-xs font-semibold text-[#124B7A] hover:underline">Update</button>
+              </div>
+              <div className="p-2.5 bg-white rounded border border-[#FCE6BE] flex items-center justify-between">
+                <div>
+                  <p className="font-bold">OEM Authorization Letter (Annexure IV)</p>
+                  <p className="text-[#C0392B] text-[10px]">Expiring in 7 days (Apex Sensors)</p>
+                </div>
+                <button className="text-xs font-semibold text-[#124B7A] hover:underline">Renew</button>
+              </div>
+            </div>
           </div>
 
           <div className="gov-card overflow-hidden">
@@ -360,15 +389,48 @@ export const BidderDashboardView: React.FC<Props> = ({ tender, bids, onNavigate 
               </button>
             </div>
 
-            {/* AI Pre-Check Banner */}
+            {/* AI Pre-Check Banner & Detailed Itemized Breakdown */}
             {preCheckRun && (
-              <div className="p-4 rounded-md bg-[#EBF6EE] border border-[#CEEBD5] text-xs space-y-1">
-                <p className="font-bold text-[#16803C] flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Pre-Submission Self-Check: 100% Eligible</span>
-                </p>
-                <p className="text-[#5F6B76]">
-                  All mandatory annexures attached and legal entity consistency verified across GSTN and CBDT PAN.
+              <div className="p-5 rounded-lg bg-[#EBF6EE] border border-[#CEEBD5] text-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#CEEBD5] pb-2">
+                  <p className="font-bold text-[#16803C] flex items-center gap-1.5 text-sm">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Automated Pre-Submission Eligibility Check (82% Readiness)</span>
+                  </p>
+                  <span className="text-[11px] font-semibold text-[#16803C] bg-white px-2 py-0.5 rounded border border-[#CEEBD5]">
+                    6 Criteria Verified
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px]">
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">GST Registration</span>
+                    <span className="font-bold text-[#16803C]">✓ Verified (Active)</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">Income Tax PAN</span>
+                    <span className="font-bold text-[#16803C]">✓ Verified (CBDT Match)</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">3-Yr Turnover ≥ ₹5.0 Cr</span>
+                    <span className="font-bold text-[#16803C]">✓ ₹18.50 Cr (Exceeds)</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">Past Experience ≥ 3 Yrs</span>
+                    <span className="font-bold text-[#16803C]">✓ 5 Years (Satisfied)</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">OEM Authorization</span>
+                    <span className="font-bold text-[#16803C]">✓ Valid (Annexure IV)</span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded border border-[#CEEBD5]">
+                    <span className="text-[#5F6B76] block">Make in India Local Content</span>
+                    <span className="font-bold text-[#16803C]">✓ 62.5% (Class-1)</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-[#16803C] font-medium">
+                  ✓ Ready for submission. Zero hard constraint failures detected.
                 </p>
               </div>
             )}
