@@ -1,5 +1,7 @@
 const express = require('express');
 const supabase = require('../config/supabase');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 const AI_SERVICE_URL = process.env.AI_MICROSERVICE_URL || 'http://127.0.0.1:8001';
@@ -91,6 +93,32 @@ router.post('/tenders', async (req, res) => {
     } catch (fallbackErr) {
       res.status(500).json({ error: err.message });
     }
+  }
+});
+
+// ---------------------- FILE UPLOAD ----------------------
+// POST /tenders/:id/upload-nit  – accepts a PDF and forwards to AI OCR service
+router.post('/tenders/:id/upload-nit', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const form = new (require('form-data'))();
+    form.append('file', req.file.buffer, { filename: req.file.originalname, contentType: req.file.mimetype });
+    const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/ai/analyze-tender`, {
+      method: 'POST',
+      body: form,
+      // Node fetch automatically sets correct headers for FormData
+    });
+    if (!aiRes.ok) {
+      const txt = await aiRes.text();
+      throw new Error(`AI service error ${aiRes.status}: ${txt}`);
+    }
+    const json = await aiRes.json();
+    return res.json(json);
+  } catch (err) {
+    console.error('[TendartBackend] Upload error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

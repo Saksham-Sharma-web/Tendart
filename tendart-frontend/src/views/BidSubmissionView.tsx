@@ -35,6 +35,15 @@ export const BidSubmissionView: React.FC<Props> = ({ tender, onSubmitBid, onNavi
   const [extractionProgress, setExtractionProgress] = useState(0);
   const [extractionStatus, setExtractionStatus] = useState('Initializing AI Extractor...');
 
+  // Track uploaded files by their index
+  const [uploadedFiles, setUploadedFiles] = useState<Record<number, File>>({});
+
+  const handleFileSelect = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFiles(prev => ({ ...prev, [idx]: e.target.files![0] }));
+    }
+  };
+
   const requiredDocuments = [
     { title: 'Form GST REG-06 Certificate', type: 'Statutory' },
     { title: 'Corporate PAN Card', type: 'Statutory' },
@@ -169,13 +178,23 @@ export const BidSubmissionView: React.FC<Props> = ({ tender, onSubmitBid, onNavi
                 <h3 className="text-xs font-bold uppercase text-[#17212B] mb-3 border-b border-[#E1E6EA] pb-2">Mandatory Annexures for Extraction</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {requiredDocuments.map((doc, idx) => (
-                    <div key={idx} className="border border-dashed border-[#A9B4BE] rounded-md p-4 bg-[#FDFDFE] hover:bg-[#F6F8FA] hover:border-[#124B7A] transition-colors cursor-pointer text-center group">
-                      <div className="w-10 h-10 rounded-full bg-[#EBF3FA] text-[#124B7A] flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                        <UploadCloud className="w-5 h-5" />
+                    <label key={idx} className="block border border-dashed border-[#A9B4BE] rounded-md p-4 bg-[#FDFDFE] hover:bg-[#F6F8FA] hover:border-[#124B7A] transition-colors cursor-pointer text-center group">
+                      <input 
+                        type="file" 
+                        accept=".pdf" 
+                        className="hidden" 
+                        onChange={(e) => handleFileSelect(idx, e)} 
+                      />
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform ${uploadedFiles[idx] ? 'bg-[#EBF6EE] text-[#16803C]' : 'bg-[#EBF3FA] text-[#124B7A]'}`}>
+                        {uploadedFiles[idx] ? <CheckCircle2 className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />}
                       </div>
                       <p className="text-xs font-bold text-[#17212B]">{doc.title}</p>
-                      <p className="text-[10px] text-[#5F6B76] mt-1">{doc.type} • PDF (Max 10MB)</p>
-                    </div>
+                      {uploadedFiles[idx] ? (
+                        <p className="text-[10px] text-[#16803C] mt-1 font-semibold truncate px-2">{uploadedFiles[idx].name}</p>
+                      ) : (
+                        <p className="text-[10px] text-[#5F6B76] mt-1">{doc.type} • PDF (Max 10MB)</p>
+                      )}
+                    </label>
                   ))}
                 </div>
               </div>

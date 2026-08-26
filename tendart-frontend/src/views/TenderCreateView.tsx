@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ArrowLeft,
   FilePlus2,
@@ -35,6 +35,16 @@ export const TenderCreateView: React.FC<Props> = ({ onCreateTender, onCancel }) 
   const [hasExtracted, setHasExtracted] = useState(true);
   const [selectedNitFile, setSelectedNitFile] = useState('CPCL_NIT_VALVE_881_2026.pdf');
   const [tenderDetailSubTab, setTenderDetailSubTab] = useState<'15_sections' | 'top_bidders' | 'rules_weights' | 'audit_log'>('15_sections');
+  // Ref for hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedNitFile(file.name);
+      // You could store the file object in state if needed for upload later
+    }
+  };
 
   // ==========================================
   // ⚡ 1. AI-EXTRACTED FIELDS (FROM NIT PDF) - ALL EDITABLE
@@ -177,9 +187,17 @@ export const TenderCreateView: React.FC<Props> = ({ onCreateTender, onCancel }) 
             </span>
           </div>
 
+          {/* Hidden file input */}
+          <input
+            type="file"
+            accept=".pdf"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
           <button
             type="button"
-            onClick={handleTriggerAiExtraction}
+            onClick={() => fileInputRef.current?.click()}
             disabled={isExtracting}
             className="gov-btn-primary h-11 px-5 text-xs font-bold flex items-center justify-center gap-2"
           >
