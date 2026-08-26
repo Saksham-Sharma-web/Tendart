@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { PipelineProgressModal } from './components/demo/PipelineProgressModal';
-import { DashboardView } from './views/DashboardView';
+import { LoginGatewayView } from './views/LoginGatewayView';
+import { OfficerWorkspaceView } from './views/OfficerWorkspaceView';
+import { TendererDashboardView } from './views/TendererDashboardView';
+import { BidderDashboardView } from './views/BidderDashboardView';
 import { TenderCreateView } from './views/TenderCreateView';
 import { TenderDetailView } from './views/TenderDetailView';
 import { BidderRankingView } from './views/BidderRankingView';
@@ -10,12 +13,14 @@ import { BidderDetailView } from './views/BidderDetailView';
 import { EvidenceViewerView } from './views/EvidenceViewerView';
 import { BidSubmissionView } from './views/BidSubmissionView';
 import { AuditReportView } from './views/AuditReportView';
+import { AdminDashboardView } from './views/AdminDashboardView';
 import { Tender, Bid, ComplianceScore, Evidence, AuditLog, RankedBidder } from './types';
 import { api } from './services/api';
 
 export const App: React.FC = () => {
+  // Active Role State (null = show Login Gateway with 4 primary options)
+  const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<string>('dashboard');
-  const [currentRole, setCurrentRole] = useState<string>('ADMIN');
 
   // Data State
   const [tenders, setTenders] = useState<Tender[]>([]);
@@ -45,11 +50,23 @@ export const App: React.FC = () => {
     loadInitialData();
   }, []);
 
+  const handleSelectRole = (role: string) => {
+    setCurrentRole(role);
+    if (role === 'TENDERER') setActiveView('tenderer_dashboard');
+    else if (role === 'BIDDER') setActiveView('bidder_dashboard');
+    else if (role === 'ADMIN') setActiveView('gov_sandbox');
+    else if (role === 'AUDITOR') setActiveView('audit_trail');
+    else setActiveView('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentRole(null);
+  };
+
   const loadInitialData = async () => {
     try {
       let tList = await api.listTenders();
       if (!tList || tList.length === 0) {
-        // Automatically load demo tender if DB is clean
         await api.loadDemoTender();
         tList = await api.listTenders();
       }
@@ -61,7 +78,7 @@ export const App: React.FC = () => {
         await loadTenderData(firstTenderId);
       }
     } catch (err) {
-      console.warn('Backend bootstrapping or offline, loading mock fallback...', err);
+      console.warn('Bootstrapping fallback data...', err);
     }
   };
 
@@ -74,9 +91,10 @@ export const App: React.FC = () => {
       const aLogs = await api.getAuditTrail(tenderId);
       setAuditTrail(aLogs);
 
-      if (bList.length > 0 && !selectedBidId) {
-        setSelectedBidId(bList[0].bid_id);
-        const bDetail = await api.getBidDetail(bList[0].bid_id);
+      if (bList.length > 0) {
+        const targetBidId = selectedBidId || bList[0].bid_id;
+        setSelectedBidId(targetBidId);
+        const bDetail = await api.getBidDetail(targetBidId);
         setCurrentBidDetail(bDetail);
       }
     } catch (err) {
@@ -99,9 +117,11 @@ export const App: React.FC = () => {
     try {
       await api.loadDemoTender();
       await loadInitialData();
-      alert('⚡ GeM Demo Tender GEM/2026/SAFETY/001 loaded successfully with 12 bidders!');
+      if (currentRole === 'TENDERER') setActiveView('tenderer_dashboard');
+      else if (currentRole === 'BIDDER') setActiveView('bidder_dashboard');
+      else setActiveView('dashboard');
     } catch (err: any) {
-      alert(`Demo load failed: ${err.message}`);
+      console.error('Demo load error:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -134,8 +154,15 @@ export const App: React.FC = () => {
 
   const handleSubmitBid = async (bidData: any) => {
     try {
-      await loadTenderData(selectedTenderId);
-      setActiveView('rankings');
+      const created = await api.submitBid(bidData);
+      if (selectedTenderId) {
+        await loadTenderData(selectedTenderId);
+      }
+      setSelectedBidId(created.bid_id);
+      const detail = await api.getBidDetail(created.bid_id);
+      setCurrentBidDetail(detail);
+      if (currentRole === 'BIDDER') setActiveView('bidder_dashboard');
+      else setActiveView('rankings');
     } catch (err) {
       console.error('Error submitting bid:', err);
     }
@@ -154,7 +181,7 @@ export const App: React.FC = () => {
   ) => {
     if (!selectedBidId) return;
     try {
-      await api.recordDecision(selectedBidId, decision, remarks, 'Procurement Officer (GeM/HQ)');
+      await api.recordDecision(selectedBidId, decision, remarks, 'Shri R. K. Sharma (Joint Director, GeM)');
       await handleSelectBid(selectedBidId);
       if (selectedTenderId) await loadTenderData(selectedTenderId);
     } catch (err: any) {
@@ -163,63 +190,94 @@ export const App: React.FC = () => {
   };
 
   const activeTender = tenders.find((t) => t.tender_id === selectedTenderId) || tenders[0] || {
-    tender_id: 'TND-GEM-SAFETY-2026',
-    title: 'Supply of Industrial Safety Equipment & PPE',
-    tender_number: 'GEM/2026/SAFETY/001',
-    department: 'Ministry of Heavy Industries & GeM Cell',
+    tender_id: 'TND-GEM-2026-001',
+    title: 'Procurement of Industrial & Tactical Safety Equipment',
+    tender_number: 'GEM/2026/B/891240',
+    department: 'Ministry of Commerce & Industry / Central Logistics Division',
     description: 'National procurement bid under Make in India guidelines',
-    estimated_value_cr: 45.0,
-    submission_deadline: '2026-10-30T17:00:00',
+    estimated_value_cr: 15.0,
+    submission_deadline: '2026-09-15T17:00:00Z',
     status: 'ACTIVE_EVALUATION',
-    created_by: 'Procurement Officer',
+    created_by: 'Director of Procurement (GeM Div-IV)',
     created_at: new Date().toISOString(),
     requirements: []
   };
 
+  // If no role selected, render the 4-Option Login Gateway Screen
+  if (!currentRole) {
+    return (
+      <LoginGatewayView
+        onSelectRole={handleSelectRole}
+        onLoadDemo={handleLoadDemo}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#0B192C] text-slate-100 flex flex-col font-sans">
-      {/* Header */}
+    <div className="min-h-screen bg-[#F6F8FA] text-[#17212B] flex flex-col font-sans">
+      {/* Sleek Government Header with Active Role & Switch Portal */}
       <Header
         currentRole={currentRole}
-        onRoleChange={setCurrentRole}
+        onRoleChange={handleSelectRole}
+        onLogout={handleLogout}
         onLoadDemo={handleLoadDemo}
         onRunPipeline={handleRunLivePipeline}
         isProcessing={isProcessing}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Dynamic Role-Aware Sidebar */}
         <Sidebar
           activeView={activeView}
           onNavigate={setActiveView}
           selectedTenderId={selectedTenderId}
           selectedBidId={selectedBidId}
+          currentRole={currentRole}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[#0B192C] to-slate-950">
-          {activeView === 'dashboard' && (
-            <DashboardView
+        {/* Main Content Area - Clean Government Canvas with 32px Padding */}
+        <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-8 lg:py-8 bg-[#F6F8FA] w-full">
+          {/* Role 1: Tenderer Dashboard View */}
+          {activeView === 'tenderer_dashboard' && (
+            <TendererDashboardView
               tenders={tenders}
               bids={bids}
+              onNavigate={setActiveView}
               onSelectTender={(id) => {
                 setSelectedTenderId(id);
                 loadTenderData(id);
-                setActiveView('tenders');
               }}
-              onSelectBid={(id) => {
-                handleSelectBid(id);
-                setActiveView('bid_detail');
-              }}
+            />
+          )}
+
+          {/* Role 2: Bidder Dashboard View */}
+          {activeView === 'bidder_dashboard' && (
+            <BidderDashboardView
+              tender={activeTender}
+              bids={bids}
               onNavigate={setActiveView}
-              onLoadDemo={handleLoadDemo}
+            />
+          )}
+
+          {/* Role 3: Procurement Officer Dashboard View */}
+          {activeView === 'dashboard' && (
+            <OfficerWorkspaceView
+              tender={activeTender}
+              bids={bids}
+              rankings={rankings}
+              auditTrail={auditTrail}
+              onSelectBid={handleSelectBid}
+              onOpenEvidenceViewer={handleOpenEvidenceViewer}
+              onRecordDecision={handleRecordDecision}
+              onRunPipeline={handleRunLivePipeline}
+              onNavigate={setActiveView}
             />
           )}
 
           {activeView === 'create_tender' && (
             <TenderCreateView
               onCreateTender={handleCreateTender}
-              onCancel={() => setActiveView('dashboard')}
+              onCancel={() => setActiveView(currentRole === 'TENDERER' ? 'tenderer_dashboard' : 'dashboard')}
             />
           )}
 
@@ -286,6 +344,8 @@ export const App: React.FC = () => {
             />
           )}
 
+          {activeView === 'gov_sandbox' && <AdminDashboardView />}
+
           {activeView === 'audit_trail' && (
             <AuditReportView
               tender={activeTender}
@@ -317,3 +377,4 @@ export const App: React.FC = () => {
     </div>
   );
 };
+export default App;

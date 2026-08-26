@@ -4,12 +4,11 @@ import {
   FileText,
   PlusCircle,
   BarChart3,
-  Search,
   UploadCloud,
   History,
-  FileCheck2,
-  Building2,
-  ChevronRight
+  Settings,
+  Building,
+  ShieldCheck
 } from 'lucide-react';
 
 interface Props {
@@ -17,76 +16,126 @@ interface Props {
   onNavigate: (view: string) => void;
   selectedTenderId?: string;
   selectedBidId?: string;
+  currentRole?: string;
+}
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: any;
 }
 
 export const Sidebar: React.FC<Props> = ({
   activeView,
   onNavigate,
   selectedTenderId,
-  selectedBidId
+  currentRole = 'OFFICER'
 }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
-    { id: 'tenders', label: 'Tenders & Requirements', icon: FileText },
-    { id: 'create_tender', label: 'Create New Tender', icon: PlusCircle },
-    { id: 'rankings', label: 'Bidder Ranking Board', icon: BarChart3 },
-    { id: 'bid_detail', label: 'Bidder Compliance Dossier', icon: Building2, requiresBid: true },
-    { id: 'evidence_viewer', label: 'Split Evidence Viewer', icon: Search },
-    { id: 'bid_submission', label: 'Vendor Bid Submission', icon: UploadCloud },
-    { id: 'audit_trail', label: 'Immutable Audit Trail', icon: History },
-    { id: 'compliance_report', label: 'Printable GeM Report', icon: FileCheck2, requiresBid: true }
+  // Role 1: Tendering Authority
+  const tendererNavItems: NavItem[] = [
+    { id: 'tenderer_dashboard', label: 'Tender Overview', icon: Building },
+    { id: 'tenders', label: 'Tender Rules Checklist', icon: FileText },
+    { id: 'create_tender', label: 'Create / Upload Tender', icon: PlusCircle }
   ];
 
+  // Role 2: Bidder / Vendor
+  const bidderNavItems: NavItem[] = [
+    { id: 'bidder_dashboard', label: 'My Bids & Documents', icon: LayoutDashboard },
+    { id: 'bid_submission', label: 'Upload Bid Proposal', icon: UploadCloud },
+    { id: 'tenders', label: 'View Tender Criteria', icon: FileText }
+  ];
+
+  // Role 3: Procurement Officer
+  const officerNavItems: NavItem[] = [
+    { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+    { id: 'rankings', label: 'Bidder Evaluation Matrix', icon: BarChart3 },
+    { id: 'audit_trail', label: 'System Audit Trail', icon: History }
+  ];
+
+  // Role 4: System Admin
+  const adminNavItems: NavItem[] = [
+    { id: 'gov_sandbox', label: 'Registry Connectors & Sandbox', icon: Settings },
+    { id: 'dashboard', label: 'System Overview', icon: LayoutDashboard },
+    { id: 'audit_trail', label: 'System Logs', icon: History }
+  ];
+
+  // Role 5: Auditor
+  const auditorNavItems: NavItem[] = [
+    { id: 'audit_trail', label: 'Forensic Audit Trail', icon: History },
+    { id: 'rankings', label: 'Evaluation Matrix', icon: BarChart3 }
+  ];
+
+  const navItems =
+    currentRole === 'TENDERER'
+      ? tendererNavItems
+      : currentRole === 'BIDDER'
+      ? bidderNavItems
+      : currentRole === 'ADMIN'
+      ? adminNavItems
+      : currentRole === 'AUDITOR'
+      ? auditorNavItems
+      : officerNavItems;
+
+  const roleLabel =
+    currentRole === 'TENDERER'
+      ? 'Tendering Authority'
+      : currentRole === 'BIDDER'
+      ? 'Vendor Workspace'
+      : currentRole === 'ADMIN'
+      ? 'System Admin'
+      : currentRole === 'AUDITOR'
+      ? 'Vigilance & Audit'
+      : 'Procurement Officer';
+
   return (
-    <aside className="w-64 bg-[#0B192C] border-r border-slate-800/80 flex flex-col justify-between p-4 shrink-0 min-h-[calc(100vh-61px)]">
-      <div className="space-y-6">
+    <aside className="w-60 bg-[#FFFFFF] border-r border-[#E1E6EA] flex flex-col justify-between p-4 shrink-0 min-h-[calc(100vh-64px)]">
+      <div className="space-y-4">
         <div>
-          <p className="px-3 text-[11px] font-bold tracking-wider text-slate-500 uppercase">Procurement Modules</p>
-          <nav className="mt-2 space-y-1">
+          <p className="px-3 text-[11px] font-bold text-[#5F6B76] uppercase tracking-wider">
+            {roleLabel}
+          </p>
+
+          <nav className="mt-2.5 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id;
-              const isBlocked = item.requiresBid && !selectedBidId;
 
               return (
                 <button
                   key={item.id}
-                  onClick={() => !isBlocked && onNavigate(item.id)}
-                  disabled={isBlocked}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  onClick={() => onNavigate(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(217,119,6,0.15)]'
-                      : isBlocked
-                      ? 'opacity-40 text-slate-600 cursor-not-allowed'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                      ? 'bg-[#EBF3FA] text-[#124B7A] font-semibold border-l-3 border-[#124B7A]'
+                      : 'text-[#5F6B76] hover:text-[#17212B] hover:bg-[#F6F8FA]'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-amber-400" />}
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#124B7A]' : 'text-[#8A949E]'}`} />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Tender Context Tag */}
+        {/* Active Tender Context Box */}
         {selectedTenderId && (
-          <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 text-xs">
-            <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Active Tender Context</p>
-            <p className="text-white font-bold mt-1 truncate">GEM/2026/SAFETY/001</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">Industrial Safety Equipment</p>
+          <div className="p-3 bg-[#F6F8FA] rounded-md border border-[#E1E6EA] text-xs">
+            <p className="text-[10px] uppercase font-bold text-[#124B7A] tracking-wider">Active Tender</p>
+            <p className="text-[#17212B] font-bold mt-1 truncate">GEM/2026/B/891240</p>
+            <p className="text-[#5F6B76] mt-0.5 truncate text-[11px]">Industrial Safety Gear</p>
           </div>
         )}
       </div>
 
-      {/* Tendart Philosophy Footer */}
-      <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800/80 text-[11px] text-slate-400">
-        <p className="font-semibold text-slate-300">🏛️ Core Principle</p>
-        <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-          AI extracts evidence. Rules verify compliance. Government officers decide.
+      {/* Institutional Legal Footer */}
+      <div className="p-3 bg-[#F6F8FA] rounded-md border border-[#E1E6EA] text-xs space-y-1">
+        <p className="font-semibold text-[#17212B] flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#16803C]" />
+          <span>Decision Authority</span>
+        </p>
+        <p className="text-[11px] leading-relaxed text-[#5F6B76]">
+          AI assists verification; the Procurement Officer makes the legal qualification decision.
         </p>
       </div>
     </aside>
