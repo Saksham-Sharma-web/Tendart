@@ -103,12 +103,12 @@ router.post('/tenders/:id/upload-nit', upload.single('file'), async (req, res) =
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    const form = new (require('form-data'))();
-    form.append('file', req.file.buffer, { filename: req.file.originalname, contentType: req.file.mimetype });
+    const form = new FormData();
+    const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+    form.append('file', blob, req.file.originalname);
     const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/ai/analyze-tender`, {
       method: 'POST',
       body: form,
-      headers: form.getHeaders(),
     });
     if (!aiRes.ok) {
       const txt = await aiRes.text();
@@ -177,15 +177,15 @@ router.post('/bids/:id/upload-evidence', upload.array('files'), async (req, res)
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
-    const form = new (require('form-data'))();
+    const form = new FormData();
     req.files.forEach(file => {
-      form.append('files', file.buffer, { filename: file.originalname, contentType: file.mimetype });
+      const blob = new Blob([file.buffer], { type: file.mimetype });
+      form.append('files', blob, file.originalname);
     });
     // Forward to the OCR micro-service for bid analysis
     const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/bids/${req.params.id}/upload-evidence`, {
       method: 'POST',
       body: form,
-      headers: form.getHeaders(),
     });
     if (!aiRes.ok) {
        const text = await aiRes.text();
