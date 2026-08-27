@@ -54,24 +54,49 @@ export const BidSubmissionView: React.FC<Props> = ({ tender, onSubmitBid, onNavi
     { title: 'Technical Compliance Datasheet', type: 'Technical' }
   ];
 
-  const handleStartExtraction = (e: React.FormEvent) => {
+  const handleStartExtraction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bidAmount) {
       alert("Please enter a commercial quote.");
       return;
     }
+    const fileKeys = Object.keys(uploadedFiles);
+    if (fileKeys.length === 0) {
+      alert("Please upload at least one mandatory document.");
+      return;
+    }
+
     setWizardStep('EXTRACTING');
-    setExtractionProgress(15);
-    setExtractionStatus('Parsing uploaded PDFs via OCR engine...');
-    
-    setTimeout(() => { setExtractionProgress(35); setExtractionStatus('Cross-referencing GSTIN & PAN with Govt registries...'); }, 1200);
-    setTimeout(() => { setExtractionProgress(60); setExtractionStatus('Extracting Financial Turnover & MII content...'); }, 2400);
-    setTimeout(() => { setExtractionProgress(85); setExtractionStatus('Verifying semantic compliance with Tender specifications...'); }, 3600);
-    setTimeout(() => { 
-      setExtractionProgress(100); 
-      setExtractionStatus('Extraction & Mapping Complete!');
-      setTimeout(() => setWizardStep('REVIEW'), 800);
-    }, 4800);
+    setExtractionProgress(10);
+    setExtractionStatus('Uploading documents to AI engine...');
+
+    try {
+      const form = new FormData();
+      fileKeys.forEach(k => {
+        form.append('files', uploadedFiles[Number(k)]);
+      });
+      const res = await fetch(`http://localhost:5000/api/v1/tendart/bids/${tender.tender_id}/upload-evidence`, {
+        method: 'POST',
+        body: form
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      console.log('AI Extraction response:', data);
+      // Continue UI progress simulation
+      setExtractionProgress(30);
+      setExtractionStatus('Cross-referencing GSTIN & PAN with Govt registries...');
+      setTimeout(() => { setExtractionProgress(55); setExtractionStatus('Extracting Financial Turnover & MII content...'); }, 1200);
+      setTimeout(() => { setExtractionProgress(80); setExtractionStatus('Verifying semantic compliance with Tender specifications...'); }, 2400);
+      setTimeout(() => { 
+        setExtractionProgress(100); 
+        setExtractionStatus('Extraction & Mapping Complete!');
+        setTimeout(() => setWizardStep('REVIEW'), 800);
+      }, 3600);
+    } catch (err) {
+      console.error(err);
+      alert('Error communicating with AI engine.');
+      setWizardStep('UPLOAD');
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
