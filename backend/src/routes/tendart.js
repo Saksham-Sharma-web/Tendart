@@ -108,7 +108,7 @@ router.post('/tenders/:id/upload-nit', upload.single('file'), async (req, res) =
     const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/ai/analyze-tender`, {
       method: 'POST',
       body: form,
-      // Node fetch automatically sets correct headers for FormData
+      headers: form.getHeaders(),
     });
     if (!aiRes.ok) {
       const txt = await aiRes.text();
@@ -182,13 +182,14 @@ router.post('/bids/:id/upload-evidence', upload.array('files'), async (req, res)
       form.append('files', file.buffer, { filename: file.originalname, contentType: file.mimetype });
     });
     // Forward to the OCR micro-service for bid analysis
-    const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/ai/analyze-bid`, {
+    const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/tendart/bids/${req.params.id}/upload-evidence`, {
       method: 'POST',
       body: form,
+      headers: form.getHeaders(),
     });
     if (!aiRes.ok) {
-       // If the endpoint is not yet implemented in Python, we fallback gracefully for the demo
-       return res.json({ success: true, message: "AI Extraction simulated (endpoint missing or returned error)" });
+       const text = await aiRes.text();
+       throw new Error(`AI microservice error ${aiRes.status}: ${text}`);
     }
     const json = await aiRes.json();
     return res.json(json);
